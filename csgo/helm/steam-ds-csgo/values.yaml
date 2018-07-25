@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: steam-ds-csgo
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+
+csgo:
+  server:
+    name: "CS:GO Dedicated Server"
+    password: ""
+    gslt: ""
+  rcon:
+    password: ""
+  workshop:
+    steamApiKey: ""
+    collection: ""
+    startmap: ""
+
+persistence:
+  enabled: true
+  annotations: {}
+  # storageClass: "manual"
+  # accessMode:
+  #   - ReadWriteOnce
+  # hostPath: "/mnt/steam"
+  # size: 30Gi
+  # existingClaim: "steam-pv-claim"
+
+resources: {}
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
