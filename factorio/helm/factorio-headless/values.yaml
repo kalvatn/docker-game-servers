@@ -1,0 +1,54 @@
+image:
+  repository: factorio-headless
+  tag: "0.16"
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 500m
+
+service:
+  type: NodePort
+  port: 34197
+  #externalIP: "1.2.3.4"
+
+factorio:
+  cfg:
+    server_name: "Factorio Dedicated Server"
+    server_description: "Factorio Dedicated Server"
+    # format "\"tag1\", \"tag2\", ... \"tagN\""
+    server_tags: "\"factorio\""
+    max_players: 10
+    visibility_lan: true
+    # if public then factorio.cfg.account credentials must be filled
+    visibility_public: false
+    game_password: ""
+    require_user_verification: false
+    allow_commands: "admins-only"
+    auto_pause: false
+    # format "\"user1\", \"user2\", ... \"userN\""
+    admin_users: ""
+
+  # factorio.com credentials
+  # either username+password or token
+  # required if factorio.cfg.visibility_public is true
+  account:
+    username: ""
+    password: ""
+    token: ""
+
+  rcon:
+    port: 27015
+    password: ""
+
+persistence:
+  enabled: true
+  ## factorio data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  # existingClaim: ""
