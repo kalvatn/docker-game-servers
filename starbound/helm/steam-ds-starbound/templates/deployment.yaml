@@ -1,0 +1,83 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "steam-ds-starbound.fullname" . }}
+  labels:
+    app: {{ template "steam-ds-starbound.name" . }}
+    chart: {{ template "steam-ds-starbound.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "steam-ds-starbound.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "steam-ds-starbound.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      restartPolicy: Always
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: storage
+              mountPath: "/mnt/steam"
+          env:
+            - name: SERVER_NAME
+              value: {{ default "Starbound Dedicated Server" .Values.starbound.server.name | quote }}
+            - name: PLAYER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-starbound.fullname" . }}
+                  key: player-password
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-starbound.fullname" . }}
+                  key: admin-password
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-starbound.fullname" . }}
+                  key: rcon-password
+          ports:
+            - name: game
+              containerPort: 21025
+              protocol: TCP
+            - name: rcon
+              containerPort: 21026
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: rcon
+              initialDelaySeconds: 10
+              periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: rcon
+              initialDelaySeconds: 20
+              periodSeconds: 20
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+            {{- if .Values.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ template "steam-ds-starbound.fullname" . }}
+            {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

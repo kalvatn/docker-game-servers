@@ -1,0 +1,41 @@
+replicaCount: 1
+
+image:
+  repository: steam-ds-starbound
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  # externalIP: "1.2.3.4"
+
+starbound:
+  server:
+    name: "Starbound Dedicated Server"
+  rcon:
+    password: ""
+  auth:
+    admin:
+      username: "admin"
+      password: ""
+    player:
+      username: "player"
+      passwod: ""
+
+persistence:
+  enabled: true
+  annotations: {}
+  # storageClass: "manual"
+  # accessMode:
+  #   - ReadWriteOnce
+  # hostPath: "/mnt/steam"
+  # size: 30Gi
+  # existingClaim: "steam-pv-claim"
+
+resources: {}
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
