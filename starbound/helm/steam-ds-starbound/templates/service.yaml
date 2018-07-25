@@ -10,10 +10,18 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: 21025
+      targetPort: game
       protocol: TCP
-      name: http
+      name: game
+    - port: 21026
+      targetPort: rcon
+      protocol: TCP
+      name: rcon
+  {{- if .Values.service.externalIP }}
+  externalIPs:
+    - {{ .Values.service.externalIP | quote }}
+  {{- end }}
   selector:
     app: {{ template "steam-ds-starbound.name" . }}
     release: {{ .Release.Name }}
