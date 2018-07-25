@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "steam-ds-csgo.fullname" . }}
+  labels:
+    app: {{ template "steam-ds-csgo.name" . }}
+    chart: {{ template "steam-ds-csgo.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: csgo
+      port: 27015
+      targetPort: csgo
+      protocol: UDP
+    - name: rcon
+      port: 27016
+      targetPort: 27015
+      protocol: TCP
+  externalIPs:
+    - {{ .Values.service.externalIP | quote }}
+  selector:
+    app: {{ template "steam-ds-csgo.name" . }}
+    release: {{ .Release.Name }}

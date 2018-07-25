@@ -1,0 +1,89 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "steam-ds-csgo.fullname" . }}
+  labels:
+    app: {{ template "steam-ds-csgo.name" . }}
+    chart: {{ template "steam-ds-csgo.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "steam-ds-csgo.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "steam-ds-csgo.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy | quote }}
+          volumeMounts:
+            - name: storage
+              mountPath: "/mnt/steam"
+          env:
+            - name: SERVER_NAME
+              value: {{ default "CS:GO Dedicated Server" .Values.csgo.server.name | quote }}
+            - name: SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-csgo.fullname" . }}
+                  key: server-password
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-csgo.fullname" . }}
+                  key: rcon-password
+            - name: GSLT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-csgo.fullname" . }}
+                  key: gslt
+            - name: STEAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "steam-ds-csgo.fullname" . }}
+                  key: steam-api-key
+            - name: WORKSHOP_COLLECTION
+              value: {{ default "" .Values.csgo.workshop.collection | quote }}
+            - name: WORKSHOP_START_MAP
+              value: {{ default "" .Values.csgo.workshop.startmap | quote }}
+          ports:
+            - name: csgo
+              containerPort: 27015
+              protocol: UDP
+          readinessProbe:
+            tcpSocket:
+              port: csgo
+              initialDelaySeconds: 10
+              periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: csgo
+              initialDelaySeconds: 20
+              periodSeconds: 20
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+            {{- if .Values.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ template "steam-ds-csgo.fullname" . }}
+            {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+

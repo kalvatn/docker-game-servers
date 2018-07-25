@@ -34,6 +34,7 @@ cd $GAME_PATH
 ./srcds_run \
   -game csgo \
   -usercon \
+  -net_port_try 1 \
   -authkey "$STEAM_API_KEY" \
   +sv_setsteamaccount "$GSLT" \
   +host_workshop_collection "$WORKSHOP_COLLECTION" \
