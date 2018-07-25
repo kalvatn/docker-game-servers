@@ -1,0 +1,107 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "factorio-headless.fullname" . }}
+  labels:
+    app: {{ template "factorio-headless.name" . }}
+    chart: {{ template "factorio-headless.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "factorio-headless.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "factorio-headless.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: storage
+              mountPath: "/factorio"
+          env:
+            - name: CFG_SERVER_NAME
+              value: {{ default "Factorio Dedicated Server" .Values.factorio.cfg.server_name | quote }}
+            - name: CFG_SERVER_DESCRIPTION
+              value: {{ default "Factorio Dedicated Server" .Values.factorio.cfg.server_description | quote }}
+            - name: CFG_SERVER_TAGS
+              value: {{ default "\"factorio\"" .Values.factorio.cfg.server_tags | quote }}
+            - name: CFG_ALLOW_COMMANDS
+              value: {{ default "admins-only" .Values.factorio.cfg.allow_commands | quote }}
+            - name: CFG_ADMIN_USERS
+              value: {{ default "" .Values.factorio.cfg.admin_users | quote }}
+            - name: CFG_MAX_PLAYERS
+              value: {{ default 10 .Values.factorio.cfg.max_players | quote }}
+            - name: CFG_AUTO_PAUSE_ENABLED
+              value: {{ default false .Values.factorio.cfg.auto_pause | quote }}
+            - name: CFG_REQUIRE_USER_VERIFICATION
+              value: {{ default false .Values.factorio.cfg.require_user_verification | quote }}
+            - name: CFG_VISIBILITY_PUBLIC_ENABLED
+              value: {{ default false .Values.factorio.cfg.visibility_public | quote }}
+            - name: CFG_VISIBILITY_LAN_ENABLED
+              value: {{ default true .Values.factorio.cfg.visibility_lan | quote }}
+            - name: CFG_GAME_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "factorio-headless.fullname" . }}
+                  key: game-password
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "factorio-headless.fullname" . }}
+                  key: rcon-password
+            - name: CFG_FACTORIO_LOGIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "factorio-headless.fullname" . }}
+                  key: factorio-account-username
+            - name: CFG_FACTORIO_LOGIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "factorio-headless.fullname" . }}
+                  key: factorio-account-password
+            - name: CFG_FACTORIO_LOGIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "factorio-headless.fullname" . }}
+                  key: factorio-account-token
+          ports:
+            - name: game
+              containerPort: 34197
+              protocol: UDP
+            - name: rcon
+              containerPort: 27015
+              protocol: TCP
+          # readinessProbe:
+          #   exec:
+          #     command:
+          #       - cat
+          #       - /tmp/healthy
+          #     initialDelaySeconds: 20
+          #     periodSeconds: 5
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+            {{- if .Values.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ template "factorio-headless.fullname" . }}
+            {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
