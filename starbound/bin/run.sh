@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+SERVER_NAME="Starbound Dedicated Server"
+RCON_PASSWORD=""
+PLAYER_USERNAME="player"
+PLAYER_PASSWORD=""
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD=""
+
+read -p "PLAYER_USERNAME: " PLAYER_USERNAME
+read -sp "PLAYER_PASSWORD: " PLAYER_PASSWORD ; echo
+read -p "ADMIN_USERNAME: " ADMIN_USERNAME
+read -sp "ADMIN_PASSWORD: " ADMIN_PASSWORD ; echo
+read -sp "RCON_PASSWORD: " RCON_PASSWORD ; echo
+
+docker run --rm -it \
+  -eSERVER_NAME="$SERVER_NAME" \
+  -eRCON_PASSWORD="$RCON_PASSWORD" \
+  -ePLAYER_USERNAME="$PLAYER_USERNAME" \
+  -ePLAYER_PASSWORD="$PLAYER_PASSWORD" \
+  -eADMIN_USERNAME="$ADMIN_USERNAME" \
+  -eADMIN_PASSWORD="$ADMIN_PASSWORD" \
+  -p21025:21025 \
+  -p21026:21026 \
+  -v /mnt/steam:/mnt/steam \
+  steam-ds-starbound
+
