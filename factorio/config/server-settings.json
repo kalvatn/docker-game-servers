@@ -4,27 +4,27 @@
   "tags": ["game", "tags"],
 
   "_comment_max_players": "Maximum number of players allowed, admins can join even a full server. 0 means unlimited.",
-  "max_players": 0,
+  "max_players": CFG_MAX_PLAYERS,
 
   "_comment_visibility": ["public: Game will be published on the official Factorio matching server",
                           "lan: Game will be broadcast on LAN"],
   "visibility":
   {
-    "public": true,
-    "lan": true
+    "public": CFG_VISIBILITY_PUBLIC_ENABLED,
+    "lan": CFG_VISIBILITY_LAN_ENABLED
   },
 
   "_comment_credentials": "Your factorio.com login credentials. Required for games with visibility public",
-  "username": "",
-  "password": "",
+  "username": "CFG_FACTORIO_LOGIN_USERNAME",
+  "password": "CFG_FACTORIO_LOGIN_PASSWORD",
 
   "_comment_token": "Authentication token. May be used instead of 'password' above.",
-  "token": "",
+  "token": "CFG_FACTORIO_LOGIN_TOKEN",
 
-  "game_password": "",
+  "game_password": "CFG_GAME_PASSWORD",
 
   "_comment_require_user_verification": "When set to true, the server will only allow clients that have a valid Factorio.com account",
-  "require_user_verification": true,
+  "require_user_verification": CFG_REQUIRE_USER_VERIFICATION,
 
   "_comment_max_upload_in_kilobytes_per_second" : "optional, default value is 0. 0 means unlimited.",
   "max_upload_in_kilobytes_per_second": 0,
@@ -36,7 +36,7 @@
   "ignore_player_limit_for_returning_players": false,
 
   "_comment_allow_commands": "possible values are, true, false and admins-only",
-  "allow_commands": "admins-only",
+  "allow_commands": "CFG_ALLOW_COMMANDS",
 
   "_comment_autosave_interval": "Autosave interval in minutes",
   "autosave_interval": 10,
@@ -48,16 +48,16 @@
   "afk_autokick_interval": 0,
 
   "_comment_auto_pause": "Whether should the server be paused when no players are present.",
-  "auto_pause": true,
+  "auto_pause": CFG_AUTO_PAUSE_ENABLED,
 
   "only_admins_can_pause_the_game": true,
 
   "_comment_autosave_only_on_server": "Whether autosaves should be saved only on server or also on all connected clients. Default is true.",
   "autosave_only_on_server": true,
-  
+
   "_comment_non_blocking_saving": "Highly experimental feature, enable only at your own risk of losing your saves. On UNIX systems, server will fork itself to create an autosave. Autosaving on connected Windows clients will be disabled regardless of autosave_only_on_server option.",
   "non_blocking_saving": false,
 
   "_comment_admins": "List of case insensitive usernames, that will be promoted immediately",
-  "admins": []
+  "admins": [CFG_ADMIN_USERS]
 }
