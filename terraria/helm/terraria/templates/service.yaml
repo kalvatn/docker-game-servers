@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "terraria.fullname" . }}
+  labels:
+    app: {{ template "terraria.name" . }}
+    chart: {{ template "terraria.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 7777
+      targetPort: game
+      protocol: TCP
+      name: game
+  {{- if .Values.service.externalIP }}
+  externalIPs:
+    - {{ .Values.service.externalIP | quote }}
+  {{- end }}
+  selector:
+    app: {{ template "terraria.name" . }}
+    release: {{ .Release.Name }}

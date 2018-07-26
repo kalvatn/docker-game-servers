@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: terraria-tshock
+  tag: 4.3.25
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  # externalIP: "1.2.3.4"
+
+terraria:
+  cfg:
+    server_name: "Terraria Dedicated Server"
+    server_password: ""
+    max_players: 8
+
+persistence:
+  enabled: true
+  annotations: {}
+  # storageClass: "manual"
+  # accessMode:
+  #   - ReadWriteOnce
+  # hostPath: "/mnt/terraria"
+  # size: 1Gi
+  # existingClaim: "terraria-pv-claim"
+
+resources: {}
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
