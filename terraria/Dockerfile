@@ -1,20 +1,43 @@
 FROM frolvlad/alpine-mono
 
-ENV TSHOCK_VERSION=4.3.25
+ENV TSHOCK_VERSION=4.3.25 \
+DIR_MOUNT=/storage \
+DIR_TSHOCK=/tshock
 
-ADD "https://github.com/NyxStudios/TShock/releases/download/v$TSHOCK_VERSION/tshock_$TSHOCK_VERSION.zip" /tmp
+ENV DIR_WORLD="$DIR_MOUNT/world" \
+DIR_CONFIG="$DIR_MOUNT/config" \
+DIR_LOGS="$DIR_MOUNT/logs" \
+DIR_PLUGINS="$DIR_TSHOCK/ServerPlugins" \
+SETTINGS_SERVER_TEMPLATE=/config-template.json \
+ZIP_FILE="tshock_$TSHOCK_VERSION.zip" \
+CFG_MAX_PLAYERS=8 \
+CFG_SERVER_NAME="Terraria TShock Server" \
+CFG_SERVER_PASSWORD="" \
+SYS_USER=terraria \
+SYS_GROUP=terraria \
+SYS_PUID=845 \
+SYS_PGID=845
 
-RUN mkdir /world /tshock && \
-touch /world/server.log && \
-ln -s /world/server.log /tshock/ServerLog.txt && \
-unzip /tmp/tshock_$TSHOCK_VERSION.zip -d /tshock && \
-rm /tmp/tshock_$TSHOCK_VERSION.zip && \
-chmod 777 /tshock/TerrariaServer.exe
+ADD "https://github.com/NyxStudios/TShock/releases/download/v$TSHOCK_VERSION/$ZIP_FILE" .
 
+RUN mkdir -p $DIR_TSHOCK && \
+ln -sf $DIR_LOGS/server.log $DIR_TSHOCK/ServerLog.txt && \
+unzip $ZIP_FILE -d $DIR_TSHOCK && \
+rm $ZIP_FILE && \
+addgroup -g $SYS_PGID -S $SYS_GROUP && \
+adduser -u $SYS_PUID -G $SYS_GROUP -s /bin/sh -SD $SYS_USER
+
+COPY config/config-template.json $SETTINGS_SERVER_TEMPLATE
 COPY entrypoint.sh /entrypoint.sh
 
-WORKDIR /tshock
+COPY plugins/* $DIR_PLUGINS
 
-VOLUME ["/world", "/tshock/ServerPlugins"]
+RUN chown -R $SYS_USER:$SYS_GROUP $DIR_TSHOCK
+
+USER $SYS_USER
+
+WORKDIR $DIR_TSHOCK
+
+VOLUME $DIR_MOUNT
 
 ENTRYPOINT ["/entrypoint.sh"]
