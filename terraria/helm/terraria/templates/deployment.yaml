@@ -1,0 +1,61 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "terraria.fullname" . }}
+  labels:
+    app: {{ template "terraria.name" . }}
+    chart: {{ template "terraria.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "terraria.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "terraria.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: storage
+              mountPath: "/storage"
+          env:
+            - name: CFG_MAX_PLAYERS
+              value: {{ default 8 .Values.terraria.cfg.max_players | quote }}
+            - name: CFG_SERVER_NAME
+              value: {{ default "Terraria Dedicated Server" .Values.terraria.cfg.server_name | quote }}
+            - name: CFG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "terraria.fullname" . }}
+                  key: server-password
+          ports:
+            - name: game
+              containerPort: 7777
+              protocol: TCP
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+            {{- if .Values.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | quote }}
+            {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ template "terraria.fullname" . }}
+            {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
